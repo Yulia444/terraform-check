@@ -41,7 +41,7 @@ resource "aws_security_group" "worker_group_mngmnt_one" {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "2.6.0"
+  version = "2.76.0"
 
   name                 = "my-vpc"
   cidr                 = "10.0.0.0/16"
@@ -65,7 +65,7 @@ module "vpc" {
 
 module "eks" {
   source                          = "terraform-aws-modules/eks/aws"
-  version                         = "12.2.0"
+  version                         = "13.2.1"
   cluster_name                    = var.cluster_name
   cluster_version                 = "1.17"
   subnets                         = module.vpc.private_subnets

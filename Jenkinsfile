@@ -91,7 +91,7 @@ pipeline {
                 }
             }
         }
-                stage('Install helm') {
+        stage('Install helm') {
             steps {
                 script {
                     sh (
@@ -112,13 +112,13 @@ pipeline {
                         script {
                             sh "export AWS_DEFAULT_OUTPUT=text"
                             RDS_DB_NAME = sh(script: """export RDS_DB_NAME=\$(echo \$(terraform output RDS_DB_NAME) | tr -d '"')""",
-                                            returnStdout: true).trim()
+                                             returnStdout: true).trim()
                             RDS_HOST = sh(script: """export RDS_HOST=\$(echo \$(terraform output RDS_HOST) | tr -d '"')""",
-                                        returnStdout: true).trim()
+                                          returnStdout: true).trim()
                             RDS_USERNAME = sh(script: """export RDS_USERNAME=\$(echo \$(terraform output RDS_USERNAME) | tr -d '"')""",
-                                            returnStdout: true).trim()
+                                              returnStdout: true).trim()
                             RDS_PASSWORD = sh(script: """export RDS_PASSWORD=\$(echo \$(terraform output RDS_PASSWORD) | tr -d '"')""",
-                                            returnStdout: true).trim()
+                                              returnStdout: true).trim()
                         }
                     }
                 }
