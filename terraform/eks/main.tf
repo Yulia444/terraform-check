@@ -38,22 +38,6 @@ resource "aws_security_group" "worker_group_mngmnt_one" {
   }
 }
 
-resource "aws_security_group" "all_worker_mngmnt" {
-  name_prefix = "all_worker_mngmnt"
-  vpc_id      = module.vpc.vpc_id
-
-  ingress {
-    from_port = 22
-    to_port   = 22
-    protocol  = "tcp"
-
-    cidr_blocks = [
-      "10.0.0.0/8",
-      "172.16.0.0/12",
-      "192.168.0.0/16"
-    ]
-  }
-}
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -95,7 +79,7 @@ module "eks" {
       instance_type                = "t2.micro"
       additional_userdata          = "echo foo bar"
       asg_desired_capacity         = 1
-      additional_security_group_id = [aws_security_group.worker_group_mngmnt_one.id,]
+      additional_security_group_ids = [aws_security_group.worker_group_mngmnt_one.id,]
     }
   ]
 

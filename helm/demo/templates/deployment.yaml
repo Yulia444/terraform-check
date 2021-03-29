@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-deployment
+  labels:
+    app: demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: demo
+  template:
+    metadata:
+      labels:
+        app: demo
+    spec:
+      containers:
+      - name: demo
+        imagePullPolicy: Always
+        env:          
+        - name: RDS_DB_NAME
+          value: {{ .Values.RDS_DB_NAME }}
+        - name: RDS_PASSWORD
+          value: {{ .Values.RDS_PASSWORD }}
+        - name: RDS_HOST
+          value: {{ .Values.RDS_HOST }}
+        - name: RDS_USERNAME
+          value: {{ .Values.RDS_USERNAME }}
+        image: juliaolkhovyk/flask-rds-eks:latest
+        ports:
+        - containerPort: 5000
+        
