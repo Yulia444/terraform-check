@@ -60,11 +60,6 @@ pipeline {
 
         stage('Terraform Plan For RDS') {
             steps {
-                dir('terraform/eks') {
-                    withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2'){
-                        sh 'export VPC_ID $(terraform output vpc-id)'
-                    }
-                }
                 dir('terraform/rds') {
                     withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2') {
                         sh 'terraform plan -out=tfplan -input=false'
@@ -131,8 +126,7 @@ pipeline {
                     withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2') {
                         script {
                             sh (
-                                script: """#!/usr/bin/env bash
-                                export KUBECONFIG=../terraform/eks/kubeconfig_demo && \
+                                script: """export KUBECONFIG=../terraform/eks/kubeconfig_demo && \
                                 helm install demo-chart ./demo \
                                 --set RDS_USERNAME=$RDS_USERNAME --set RDS_DB_NAME=$RDS_DB_NAME \
                                 --set RDS_HOST=$RDS_HOST --set RDS_PASSWORD=$RDS_PASSWORD
