@@ -12,7 +12,7 @@ pipeline {
             steps {
                 dir('terraform/eks') {
                     withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2'){
-                    sh 'terraform init'
+                        sh 'terraform init'
                     }
                 }
 
