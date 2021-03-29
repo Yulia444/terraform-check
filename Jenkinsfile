@@ -110,6 +110,7 @@ pipeline {
                 dir('/terraform/rds') {
                     withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2') {
                         script {
+                            sh "export AWS_DEFAULT_OUTPUT=text"
                             RDS_DB_NAME = sh(script: """export RDS_DB_NAME=\$(echo \$(terraform output RDS_DB_NAME) | tr -d '"')""",
                                             returnStdout: true).trim()
                             RDS_HOST = sh(script: """export RDS_HOST=\$(echo \$(terraform output RDS_HOST) | tr -d '"')""",
