@@ -1,3 +1,7 @@
+def RDS_DB_NAME
+def RDS_HOST
+def RDS_PASSWORD
+def RDS_USERNAME
 pipeline {
     tools {
         terraform 'terraform'
