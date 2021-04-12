@@ -30,8 +30,4 @@ module "rds" {
     name = var.name
     identifier = var.identifier
     username = var.username
-    rds_host = module.rds.RDS_HOST
-    rds_db_name = module.rds.RDS_DB_NAME
-    rds_username = module.rds.RDS_USERNAME
-    rds_password = module.rsd.RDS_PASSWORD
 }

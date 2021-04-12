@@ -1,19 +1,16 @@
-output "RDS_HOST" {
+output "rds_host" {
   value = aws_db_instance.postgres.endpoint
 }
 
-output "RDS_USERNAME" {
+output "rds_username" {
   value = aws_db_instance.postgres.username
 }
 
-output "RDS_DB_NAME" {
+output "rds_db_name" {
   value = aws_db_instance.postgres.name
 }
 
-output "RDS_PASSWORD" {
+output "rds_password" {
   value = aws_db_instance.postgres.password
 }
 
-output "RDS_PORT" {
-  value = aws_db_instance.postgres.port
-}

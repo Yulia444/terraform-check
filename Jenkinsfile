@@ -137,7 +137,7 @@ pipeline {
             steps {
                 dir('terraform') {
                     withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2') {
-                        sh "terraform destoy -input=false -auto-approve"
+                        sh "terraform destroy -input=false -auto-approve"
                     }
                 }
             }
