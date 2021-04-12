@@ -1,6 +1,5 @@
 output "RDS_HOST" {
   value = aws_db_instance.postgres.endpoint
-  sensitive = true
 }
 
 output "RDS_USERNAME" {

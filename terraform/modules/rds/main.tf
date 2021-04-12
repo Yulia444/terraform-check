@@ -47,18 +47,18 @@ resource "aws_security_group" "postgres" {
 }
 
 resource "aws_db_instance" "postgres" {
-  allocated_storage      = 20
-  engine                 = "postgres"
-  engine_version         = "11.10"
-  identifier             = "mydb1"
-  instance_class         = "db.t2.micro"
+  allocated_storage      = var.allocated_storage
+  engine                 = var.engine
+  engine_version         = var.engine_version
+  identifier             = var.identifier
+  instance_class         = var.instance_class
   multi_az               = false
-  name                   = "mydb1"
+  name                   = var.name
   password               = random_string.demo_postgres_password.result
   port                   = 5432
   skip_final_snapshot    = true
   publicly_accessible    = true
-  username               = "mydb1"
+  username               = var.username
   vpc_security_group_ids = [aws_security_group.postgres.id]
   db_subnet_group_name = aws_db_subnet_group.rds-private-subnet.name
 

@@ -1,55 +1,20 @@
-def RDS_DB_NAME
-def RDS_HOST
-def RDS_PASSWORD
-def RDS_USERNAME
 pipeline {
     tools {
         terraform 'terraform'
     }
+    environment {
+        RDS_DB_NAME = ""
+        RDS_HOST = ""
+        RDS_PASSWORD = ""
+        RDS_USERNAME = ""
+        name = "demo"
+        RELEASE_NAME = "datadogagentdemo"
+    }
     agent any
     stages {
-        stage('Terraform Init For EKS') {
+        stage('Terraform Init') {
             steps {
-                dir('terraform/eks') {
-                    withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2'){
-                        sh 'terraform init'
-                    }
-                }
-
-            }
-        }
-        stage('Terraform Plan For EKS') {
-            steps {
-                dir('terraform/eks') {
-                    withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2') {
-                        sh 'terraform plan -out=tfplan -input=false'
-                    }
-                }
-            }
-        }
-
-        stage('User Approval For Applying Terraform For EKS') {
-            steps {
-                echo "Proceed applying terraform for EKS?:"
-                input(message: 'Proceed applying terraform for EKS?', ok: 'Yes', 
-                parameters: [booleanParam(defaultValue: true, 
-                description: 'This will apply changes in EKS terraform',name: 'Yes?')])
-            }
-        }
-
-        stage('Terraform Apply For EKS') {
-            steps {
-                dir('terraform/eks') {
-                    withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2') {
-                        sh "terraform apply -input=false  -auto-approve"
-                    }
-                }
-            }
-        }
-
-        stage('Terraform Init For RDS') {
-            steps {
-                dir('terraform/rds') {
+                dir('terraform') {
                     withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2'){
                     sh 'terraform init'
                     }
@@ -57,10 +22,9 @@ pipeline {
 
             }
         }
-
-        stage('Terraform Plan For RDS') {
+        stage('Terraform Plan') {
             steps {
-                dir('terraform/rds') {
+                dir('terraform') {
                     withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2') {
                         sh 'terraform plan -out=tfplan -input=false'
                     }
@@ -68,71 +32,94 @@ pipeline {
             }
         }
 
-        stage('User Approval For Applying Terraform For RDS') {
+        stage('User Approval For Applying Infrastructure') {
             steps {
-                echo "Proceed applying terraform for RDS?:"
-                input(message: 'Proceed applying terraform for RDS?', ok: 'Yes', 
+                echo "Proceed applying terraform options?:"
+                input(message: 'Proceed applying terraform options?', ok: 'Yes', 
                 parameters: [booleanParam(defaultValue: true, 
-                description: 'This will apply changes in RDS terraform',name: 'Yes?')])
+                description: 'This will apply changes in terraform',name: 'Yes?')])
             }
         }
 
-        stage('Terraform Apply For RDS') {
+        stage('Terraform Apply For EKS') {
             steps {
-                dir('terraform/rds') {
+                dir('terraform') {
                     withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2') {
                         sh "terraform apply -input=false  -auto-approve"
                     }
                 }
             }
         }
-        stage('Install helm') {
+
+        stage('Update kubeconfig') {
+            steps {
+                withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2') {
+                    sh "aws eks update-kubeconfig --name $name}"
+                }
+            }
+        }
+        stage('Download Helm') {
             steps {
                 script {
                     sh (
-                        label: "Installing Helm and tiller",
+                        label: "Installing Helm",
                         script: """#!/usr/bin/env bash
                         wget https://get.helm.sh/helm-v3.1.0-linux-amd64.tar.gz
                         tar -xvzf helm-v3.1.0-linux-amd64.tar.gz
                         mv linux-amd64/helm helm
                         """
-                    )
+                    )                   
                 }
             }
         }
         stage('Export env variables for RDS instance') {
             steps {
-                dir('/terraform/rds') {
+                dir('terraform') {
                     withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2') {
                         script {
                             sh "export AWS_DEFAULT_OUTPUT=text"
-                            RDS_DB_NAME = sh(script: """export RDS_DB_NAME=\$(echo \$(terraform output RDS_DB_NAME) | tr -d '"')""",
-                                             returnStdout: true).trim()
-                            RDS_HOST = sh(script: """export RDS_HOST=\$(echo \$(terraform output RDS_HOST) | tr -d '"')""",
-                                          returnStdout: true).trim()
-                            RDS_USERNAME = sh(script: """export RDS_USERNAME=\$(echo \$(terraform output RDS_USERNAME) | tr -d '"')""",
-                                              returnStdout: true).trim()
-                            RDS_PASSWORD = sh(script: """export RDS_PASSWORD=\$(echo \$(terraform output RDS_PASSWORD) | tr -d '"')""",
-                                              returnStdout: true).trim()
+                            RDS_DB_NAME = sh(script: """echo \$(terraform output RDS_DB_NAME) | tr -d '"'""", returnStdout: true).trim()
+                            RDS_HOST = sh(script: """echo \$(terraform output RDS_HOST) | tr -d '"'""", returnStdout: true).trim()
+                            RDS_USERNAME = sh(script: """echo \$(terraform output RDS_USERNAME) | tr -d '"'""", returnStdout: true).trim()
+                            RDS_PASSWORD = sh(script: """echo \$(terraform output RDS_PASSWORD) | tr -d '"'""", returnStdout: true).trim()
+                            sh "echo $RDS_PASSWORD"
+                            sh "echo $RDS_HOST"
+                            sh "echo $RDS_USERNAME"
+                            sh "echo $RDS_DB_NAME"
                         }
                     }
                 }
             }
         }
-
-        stage('Install demo through helm') {
+        stage('Deploy project through helm') {
             steps {
-                dir('/helm') {
+                dir('helm') {
                     withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2') {
                         script {
                             sh (
-                                script: """export KUBECONFIG=../terraform/eks/kubeconfig_demo && \
-                                helm install demo-chart ./demo \
+                                script: """helm install demo-chart ./demo \
                                 --set RDS_USERNAME=$RDS_USERNAME --set RDS_DB_NAME=$RDS_DB_NAME \
                                 --set RDS_HOST=$RDS_HOST --set RDS_PASSWORD=$RDS_PASSWORD
                                 """
                             )
                         }
+                    }
+                }
+            }
+        }
+        stage('Deploy datadog agent for Kubernetes') {
+            steps {
+                dir('helm/datadog'){
+                    script {
+                        sh (
+                            script :"""helm repo add datadog https://helm.datadoghq.com && \
+                            helm repo add stable https://charts.helm.sh/stable && \
+                            helm repo update && \
+                            helm install $RELEASE_NAME -f datadog-values.yaml \
+                            --set datadog.site='datadoghq.com' \
+                            --set datadog.apiKey=29de05566ae7878b1ffe846247a76b5b datadog/datadog 
+                            """
+                        )
                     }
                 }
             }
@@ -146,9 +133,9 @@ pipeline {
             }
         }
 
-        stage('Terraform Destroy EKS') {
+        stage('Terraform Destroy AWS Infrastructure') {
             steps {
-                dir('terraform/eks') {
+                dir('terraform') {
                     withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2') {
                         sh "terraform destoy -input=false -auto-approve"
                     }
@@ -156,23 +143,5 @@ pipeline {
             }
         }
 
-        stage('User Approval For Destroying Terraform For RDS') {
-            steps {
-                echo "Proceed destroying terraform for RDS?:"
-                input(message: 'Proceed destroying terraform for RDS?', ok: 'Yes', 
-                parameters: [booleanParam(defaultValue: false, 
-                description: 'This will destroy changes in RDS terraform',name: 'Yes?')])
-            }
-        }
-
-        stage('Terraform Destroy RDS') {
-            steps {
-                dir('terraform/rds') {
-                    withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2') {
-                        sh "terraform destoy -input=false -auto-approve"
-                    }
-                }
-            }
-        }
     }
 }

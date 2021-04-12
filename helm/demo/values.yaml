@@ -80,7 +80,7 @@ tolerations: []
 affinity: {}
 
 
-RDS_USERNAME: ""
+RDS_USERNAME: "mydb1"
 RDS_PASSWORD: ""
 RDS_HOST: ""
-RDS_DB_NAME: ""
+RDS_DB_NAME: "mydb1"
