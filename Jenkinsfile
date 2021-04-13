@@ -54,7 +54,7 @@ pipeline {
         stage('Update kubeconfig') {
             steps {
                 withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2') {
-                    sh "aws eks update-kubeconfig --name $name}"
+                    sh "aws eks update-kubeconfig --name $name"
                 }
             }
         }
