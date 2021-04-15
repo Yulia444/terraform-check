@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="../static/css/style.css" type="text/css">
+    </head>
+    <body>
+        {% block navigation %}
+            {% include 'navigation.html' %}
+        {% endblock %}
+        <img src="../static/img/divani-palace-acropolis-acropolis-secret-restaurant-14.jpg" style="width: 100%;">
+        <p id="main">Acropolis Secret Roof Garden Bar Restaurant</p>
+        <p id="about_r">Discover a gastronomic gem in the heart of Ancient Athens.<br>
+            A culinary secret lying in the shadows of the Acropolis has been revealed lovers of fine dining in Athens.<br>
+            Acropolis Secret is set to become the city’s favorite destination for unparalleled summer evenings of unique taste. Greek cuisine at its finest!<br>
+            Discover dishes honoring traditional Greek gastronomy but crafted with a contemporary creativity, resulting in a distinctive, unique menu.<br>
+            With an emphasis on high quality produce sourced in Greece, the authentic,<br>
+            vibrant flavors at Acropolis Secret rooftop restaurant will please even the most demanding of palates.<br>
+            The ultimate culinary secret resides in the heart of historic Athens, waiting for you to discover its truly magical atmosphere.
+        </p>
+        <hr>
+        <p id="booking"><strong>Reservations:</strong> +38020928001<br>
+        <strong>Address:</strong> Roof Garden of Divani Palace Acropolis, 19-25 Parthenonos Str., Athens<br>
+        <strong>Opening Hours:</strong> 19:30 to 02:00</p>
+        <hr>
+        <div id="link-container">
+            <a id="downloadmenu" href="acropolismenu.pdf" download target="_blank">Download Menu</a>
+        </div>
+        {% block footer %}
+            {% include 'footer.html' %}
+        {% endblock %}
+    </body>
+</html>

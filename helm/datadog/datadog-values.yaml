@@ -1024,7 +1024,7 @@ clusterChecksRunner:
   # clusterChecksRunner.replicas -- Number of Cluster Checks Runner instances
   ## If you want to deploy the clusterChecks agent in HA, keep at least clusterChecksRunner.replicas set to 2.
   ## And increase the clusterChecksRunner.replicas according to the number of Cluster Checks.
-  replicas: 2
+  replicas: 1
 
   # clusterChecksRunner.resources -- Datadog clusterchecks-agent resource requests and limits.
   resources: {}

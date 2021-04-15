@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="../static/css/style.css" type="text/css">
+    </head>
+    <body>
+        {% block navigation %}
+            {% include 'navigation.html' %}
+        {% endblock %}
+
+        <div class='gallery'>
+            {% for image in images %}
+            <img src="../static/img/{{ image.link }}" style="width: 380px; height: 360px;">
+            {% endfor %}
+        </div>
+
+        {% block footer %}
+            {% include 'footer.html' %}
+        {% endblock %}
+    </body>
+</html>

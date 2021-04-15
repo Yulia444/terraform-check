@@ -3,6 +3,11 @@ pipeline {
         terraform 'terraform'
     }
     environment {
+        dockerHubCredentials = "docker-hub-credentials"
+        dockerHubUsername = "juliaolkhovyk"
+        dockerImageTag = "latest"
+        containerName = "demo"
+        imageName = "$dockerHubUsername/flask-rds-eks:$dockerImageTag"
         RDS_DB_NAME = ""
         RDS_HOST = ""
         RDS_PASSWORD = ""
@@ -12,6 +17,45 @@ pipeline {
     }
     agent any
     stages {
+        stage('build images') {
+            steps {
+                dir('flask') {
+                    script {
+                        dockerImage = docker.build(imageName, '.')
+                    }
+                }
+            }
+            
+        }
+        stage('run image') {
+            steps {
+                script {
+                    sh "docker run --name $containerName -d -p 5000:5000  $imageName"
+                }
+            }
+        }
+        stage('stop running container') {
+            steps {
+                script {
+                    sh "docker stop demo"
+                }
+            }
+        }
+        stage('deploy images'){
+            steps{
+                script {
+                    docker.withRegistry('', dockerHubCredentials) {
+                        dockerImage.push()
+                    }
+                }
+            }
+        }
+        stage('remove images'){
+            steps{
+                sh "docker rmi $imageName -f"
+                sh "docker container rm $containerName"
+            }
+        }
         stage('Terraform Init') {
             steps {
                 dir('terraform') {
@@ -110,26 +154,29 @@ pipeline {
         stage('Deploy datadog agent for Kubernetes') {
             steps {
                 dir('helm/datadog'){
-                    script {
-                        sh (
-                            script :"""helm repo add datadog https://helm.datadoghq.com && \
-                            helm repo add stable https://charts.helm.sh/stable && \
-                            helm repo update && \
-                            helm install $RELEASE_NAME -f datadog-values.yaml \
-                            --set datadog.site='datadoghq.com' \
-                            --set datadog.apiKey=29de05566ae7878b1ffe846247a76b5b datadog/datadog 
-                            """
-                        )
+                    withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2') {
+                        script {
+                            sh (
+                                script :"""helm repo add datadog https://helm.datadoghq.com && \
+                                helm repo add stable https://charts.helm.sh/stable && \
+                                helm repo update && \
+                                helm install $RELEASE_NAME -f datadog-values.yaml \
+                                --set datadog.site='datadoghq.com' \
+                                --set datadog.apiKey=29de05566ae7878b1ffe846247a76b5b datadog/datadog \
+                                --kubeconfig=/var/lib/jenkins/.kube/config
+                                """
+                            )
+                        }
                     }
                 }
             }
         }
-        stage('User Approval For Destroying Terraform For EKS') {
+        stage('User Approval For Destroying AWS Infrastructure') {
             steps {
-                echo "Proceed destroying terraform for EKS?:"
-                input(message: 'Proceed destroying terraform for EKS?', ok: 'Yes', 
+                echo "Proceed destroying terraform for AWS Infrastructure?:"
+                input(message: 'Proceed destroying terrraform for AWS Infrastructure?', ok: 'Yes', 
                 parameters: [booleanParam(defaultValue: false, 
-                description: 'This will destroy changes in EKS terraform',name: 'Yes?')])
+                description: 'This will destroy changes in AWS Infrastructure',name: 'Yes?')])
             }
         }
 

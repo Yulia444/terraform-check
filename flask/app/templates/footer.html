@@ -1,0 +1,22 @@
+<footer>
+    <h2 class="hints" id="one">Contact us</h2>
+    <h2 class="hints" id="two">Subscribe to our Newsletter:</h2>
+    
+    <form method="POST" action="">
+        {{ form.csrf_token() }}
+        {{ form.email }}
+        <input type="submit"></input>
+    </form>
+    <div class="address">
+        <p><span id="bolditalic">Address</span><br>19-25 Parthenonos str. <br>11742<br>Athens Greece</p>
+    </div>
+    <div class="contacts">
+        <p><span id="bolditalic">Phone:</span><br>+30 210 92 80 100</p>
+        <p><span id="bolditalic">Fax:</span><br>+30 210 92 14 993</p>
+        <p><span id="bolditalic">Email:</span><br>info@divaniacropolis.gr</p>
+    </div>
+    <div class="socialmedia">
+        <h2 class="hints" id="three">Connect with us</h2>
+    </div>
+    <img src="../static/img/icons.png" id="icons">
+</footer>

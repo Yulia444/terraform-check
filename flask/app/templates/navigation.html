@@ -1,0 +1,15 @@
+<header>
+    <div class="header">
+        <a href="{{ url_for('main') }}"><img src="../static/img/divani-palace-acropolis-secret-restaurant-logo.png" id="logo"></a>
+        <ul>
+            {% set active = 'active_nav' %}
+            {% for nav in navies %}
+            {% if nav in request.path %}
+            <li><a href="{{ url_for(nav) }}" id="{{ active }}">{{ nav | title }}</a></li>
+            {% else %}
+            <li><a href="{{ url_for(nav) }}">{{ nav | title }}</a></li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+</header>
