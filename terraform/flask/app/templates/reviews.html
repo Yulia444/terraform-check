@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="../static/css/style.css" type="text/css">
+        <link rel="stylesheet" href="../static/css/review_form_style.css" type="text/css">
+        <script src="../static/js/script.js"></script>
+    </head>
+    <body>
+        {% block navigation %}
+            {% include 'navigation.html' %}
+        {% endblock %}
+
+        <p style="margin-top: 50px;">
+            <span id='all_reviews'>All reviews</span><span id='write_review' class='open-btn' onclick="openForm()">write review</span>
+        </p>
+        <div class="reviews">
+            {% if reviews %}
+                {% for review in reviews %}
+                <div class="review">
+                    <p><pre><span id="person">{{ review.author }}</span>   <span id="about">{{ review.title }}</span><span id="date">{{ review.date }}</span></pre></p>
+                    <p id="details">{{ review.review }}</p>
+
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        {% block popup_form %}
+            {% include 'popup_form.html' %}
+        {% endblock %}
+       
+    </body>
+</html>

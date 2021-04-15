@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="../static/css/style.css" type="text/css">
+    </head>
+    <body>
+        {% block navigation %}
+            {% include 'navigation.html' %}
+        {% endblock %}
+
+        <div class='dish_nav'>
+            <ul>
+                {% set active='active' %}
+                {% for category in categories %}
+                    {% if category in request.path %}
+                <li><a href="/menu/{{ category }}" id='{{ active }}'>{{ category }}</a></li>
+                    {% else %}
+                <li><a href="/menu/{{ category }}">{{ category }}</a></li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+            <hr style='margin-top: 30px;'>
+        </div>
+        
+        
+        <div class='menu'>
+            {% for dish in dishes %}
+            <figure style='width: 350px;'>
+                <img src="../static/img/{{ dish.picture }}" style='width: 350px; height: 350px;'>
+                <figcaption>{{ dish.description }} <br><br> {{ dish.price }}€</figcaption>
+            </figure>
+            {% endfor %}
+        </div>
+        
+        {% block footer %}
+            {% include 'footer.html' %}
+        {% endblock %}
+    </body>
+</html>

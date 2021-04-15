@@ -1,0 +1,20 @@
+@import url('https://fonts.googleapis.com/css?family=Hind+Vadodara&display=swap');
+@import url('https://fonts.googleapis.com/css?family=M+PLUS+1p&display=swap'); 
+
+h1{
+    padding-bottom: 20px;
+}
+h1, p{
+    font-family: 'Century Gothic', 'M PLUS 1p', sans-serif;;
+}
+blockquote{
+    margin: 25px 50px;
+    font-weight: 600;
+}
+img{
+    margin: 20px 0;
+}
+
+#date{
+    padding-bottom: 20px;
+}

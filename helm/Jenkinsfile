@@ -1,0 +1,64 @@
+def RDS_DB_NAME
+def RDS_HOST
+def RDS_PASSWORD
+def RDS_USERNAME
+
+pipeline {
+    tools {
+        terraform 'terraform'
+    }
+    agent any
+    stages {
+        stage('Install helm') {
+            steps {
+                script {
+                    sh (
+                        label: "Installing Helm and tiller",
+                        script: """#!/usr/bin/env bash
+                        wget https://get.helm.sh/helm-v3.1.0-linux-amd64.tar.gz
+                        tar -xvzf helm-v3.1.0-linux-amd64.tar.gz
+                        mv linux-amd64/helm helm
+                        """
+                    )
+                }
+            }
+        }
+        stage('Export env variables for RDS instance') {
+            steps {
+                dir('../terraform/rds') {
+                    withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2') {
+                        script {
+                            RDS_DB_NAME = sh(script: """export RDS_DB_NAME=\$(echo \$(terraform output RDS_DB_NAME) | tr -d '"')""",
+                                            returnStdout: true).trim()
+                            RDS_HOST = sh(script: """export RDS_HOST=\$(echo \$(terraform output RDS_HOST) | tr -d '"')""",
+                                        returnStdout: true).trim()
+                            RDS_USERNAME = sh(script: """export RDS_USERNAME=\$(echo \$(terraform output RDS_USERNAME) | tr -d '"')""",
+                                            returnStdout: true).trim()
+                            RDS_PASSWORD = sh(script: """export RDS_PASSWORD=\$(echo \$(terraform output RDS_PASSWORD) | tr -d '"')""",
+                                            returnStdout: true).trim()
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Install demo through helm') {
+            steps {
+                dir('/helm') {
+                    withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2') {
+                        script {
+                            sh (
+                                script: """#!/usr/bin/env bash
+                                export KUBECONFIG=kubeconfig_demo && \
+                                helm install demo-chart ./demo \
+                                --set RDS_USERNAME=$RDS_USERNAME --set RDS_DB_NAME=$RDS_DB_NAME \
+                                --set RDS_HOST=$RDS_HOST --set RDS_PASSWORD=$RDS_PASSWORD
+                                """
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

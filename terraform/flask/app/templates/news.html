@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="../static/css/style.css" type="text/css">
+        <link rel="stylesheet" href="../static/css/news_style.css" type="text/css">
+    </head>
+    <body>
+        {% block navigation %}
+            {% include 'navigation.html' %}
+        {% endblock %}
+        <div class="news"> 
+            {% for new in news %}
+            <div class="new">
+                {{ new.data | safe }}
+                <p id="date">{{ new.date }}</p>
+            </div>
+            
+            {% endfor %}
+        </div>
+
+    </body>
+</html>

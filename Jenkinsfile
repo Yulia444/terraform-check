@@ -1,3 +1,7 @@
+def RDS_DB_NAME
+def RDS_HOST
+def RDS_PASSWORD
+def RDS_USERNAME
 pipeline {
     tools {
         terraform 'terraform'
@@ -8,10 +12,6 @@ pipeline {
         dockerImageTag = "latest"
         containerName = "demo"
         imageName = "$dockerHubUsername/flask-rds-eks:$dockerImageTag"
-        RDS_DB_NAME = ""
-        RDS_HOST = ""
-        RDS_PASSWORD = ""
-        RDS_USERNAME = ""
         name = "demo"
         RELEASE_NAME = "datadogagentdemo"
     }
@@ -122,14 +122,14 @@ pipeline {
                     withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2') {
                         script {
                             sh "export AWS_DEFAULT_OUTPUT=text"
-                            RDS_DB_NAME = sh(script: """echo \$(terraform output RDS_DB_NAME) | tr -d '"'""", returnStdout: true).trim()
-                            RDS_HOST = sh(script: """echo \$(terraform output RDS_HOST) | tr -d '"'""", returnStdout: true).trim()
-                            RDS_USERNAME = sh(script: """echo \$(terraform output RDS_USERNAME) | tr -d '"'""", returnStdout: true).trim()
-                            RDS_PASSWORD = sh(script: """echo \$(terraform output RDS_PASSWORD) | tr -d '"'""", returnStdout: true).trim()
-                            sh "echo $RDS_PASSWORD"
-                            sh "echo $RDS_HOST"
-                            sh "echo $RDS_USERNAME"
-                            sh "echo $RDS_DB_NAME"
+                            RDS_DB_NAME = returnEnvForRDS("RDS_DB_NAME")
+                            RDS_HOST = returnEnvForRDS("RDS_HOST")
+                            RDS_USERNAME = returnEnvForRDS("RDS_USERNAME")
+                            RDS_PASSWORD = returnEnvForRDS("RDS_PASSWORD")
+                            sh "echo ${RDS_PASSWORD}"
+                            sh "echo ${RDS_HOST}"
+                            sh "echo ${RDS_USERNAME}"
+                            sh "echo ${RDS_DB_NAME}"
                         }
                     }
                 }
@@ -155,18 +155,36 @@ pipeline {
             steps {
                 dir('helm/datadog'){
                     withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2') {
-                        script {
-                            sh (
-                                script :"""helm repo add datadog https://helm.datadoghq.com && \
-                                helm repo add stable https://charts.helm.sh/stable && \
-                                helm repo update && \
-                                helm install $RELEASE_NAME -f datadog-values.yaml \
-                                --set datadog.site='datadoghq.com' \
-                                --set datadog.apiKey=b5b datadog/datadog \
-                                --kubeconfig=/var/lib/jenkins/.kube/config
-                                """
-                            )
+                        withCredentials([string(credentialsId: 'datadog_apikey', variable: 'DD_API_KEY')]) {
+                            script {
+                                sh (
+                                    script :"""helm repo add datadog https://helm.datadoghq.com && \
+                                    helm repo add stable https://charts.helm.sh/stable && \
+                                    helm repo update && \
+                                    helm install $RELEASE_NAME -f datadog-values.yaml \
+                                    --set datadog.site='datadoghq.com' \
+                                    --set datadog.apiKey=${DD_API_KEY} datadog/datadog \
+                                    --kubeconfig=/var/lib/jenkins/.kube/config
+                                    """
+                                )
+                            }
                         }
+                    }
+                }
+            }
+        }
+        stage('Deploy Datadog Agent for Docker') {
+            steps {
+                withCredentials([string(credentialsId: 'datadog_apikey', variable: 'DD_API_KEY')]) {
+                    script {
+                        sh(
+                            script: """docker pull datadog/agent && \
+                            docker run -d --name dd-agent -v /var/run/docker.sock:/var/run/docker.sock:ro \
+                            -v /proc/:/host/proc/:ro \
+                            -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e \
+                            DD_API_KEY=${DD_API_KEY} gcr.io/datadoghq/agent:7
+                            """
+                        )
                     }
                 }
             }
@@ -179,7 +197,15 @@ pipeline {
                 description: 'This will destroy changes in AWS Infrastructure',name: 'Yes?')])
             }
         }
-
+        stage('Terraform Config Map Remove') {
+            steps {
+                dir('terraform') {
+                    withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2') {
+                        sh 'terraform state rm module.eks.module.eks.kubernetes_config_map.aws_auth[0]'
+                    }
+                }
+            }
+        }
         stage('Terraform Destroy AWS Infrastructure') {
             steps {
                 dir('terraform') {
@@ -191,4 +217,8 @@ pipeline {
         }
 
     }
+}
+
+def returnEnvForRDS(parameter) {
+    return sh(script: """echo \$(terraform output ${parameter}) | tr -d '"'""", returnStdout: true).trim()
 }

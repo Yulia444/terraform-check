@@ -1,0 +1,16 @@
+<div id="loginPopup">
+    <div class="form-popup" id="popupForm">
+      <form action="" method="POST" class="form-container">
+        {{ form.csrf_token() }}
+        <h2>Write review</h2>
+        {{ form.author.label }}<br>
+        {{ form.author(value="author") }}<br>
+        {{ form.title.label }}<br>
+        {{ form.title(value="title") }}<br>
+        {{ form.review.label }}<br>
+        {{ form.review(cols="50", rows="5") }}<br>
+        <button type="submit">Send review</button><br>
+        <button type="button" id="cancel" onclick="closeForm()">Close</button>
+      </form>
+    </div>
+  </div>
