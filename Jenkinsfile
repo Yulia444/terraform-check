@@ -197,10 +197,7 @@ pipeline {
                     dir('helm/prometheus') {
                         script {
                             sh(
-                                script: """helm install prometheus stable/prometheus-operator && \
-                                kubectl describe statefulset prometheus-prometheus-prometheus-oper-prometheus > prom.yaml && \
-                                kubectl describe statefulset alertmanager-prometheus-prometheus-oper-alertmanager > alert.yaml && \
-                                kubectl describe deployment prometheus-prometheus-oper-operator > oper.yaml"""
+                                script: """helm install prometheus stable/prometheus-operator"""
                             )
                         }
                     }
