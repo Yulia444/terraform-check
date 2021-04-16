@@ -20,9 +20,9 @@ module "eks" {
     {
       name                         = "worker-group"
       instance_type                = "t2.micro"
-      asg_desired_capacity         = 8
-      asg_min_size = 8
-      asg_max_size = 10
+      asg_desired_capacity         = 40
+      asg_min_size = 40
+      asg_max_size = 45
       tags = [{
         key = "worker-group-tag"
         value = "worker-group-1"
