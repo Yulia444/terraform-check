@@ -34,7 +34,7 @@ variable "cidr" {
 }
 
 variable "region" {
-  type = "string"
+  type = string
   default = "us-east-2"
 }
 
@@ -64,3 +64,4 @@ variable "username" {
   // RDS database username
   default = "mydb1"
 }
+

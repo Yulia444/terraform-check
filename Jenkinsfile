@@ -175,16 +175,34 @@ pipeline {
         }
         stage('Deploy Datadog Agent for Docker') {
             steps {
-                withCredentials([string(credentialsId: 'datadog_apikey', variable: 'DD_API_KEY')]) {
-                    script {
-                        sh(
-                            script: """docker pull datadog/agent && \
-                            docker run -d --name dd-agent -v /var/run/docker.sock:/var/run/docker.sock:ro \
-                            -v /proc/:/host/proc/:ro \
-                            -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e \
-                            DD_API_KEY=${DD_API_KEY} gcr.io/datadoghq/agent:7
-                            """
-                        )
+                withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2') {
+                    withCredentials([string(credentialsId: 'datadog_apikey', variable: 'DD_API_KEY')]) {
+                        script {
+                            sh(
+                                script: """docker pull datadog/agent && \
+                                docker run -d --name dd-agent -v /var/run/docker.sock:/var/run/docker.sock:ro \
+                                -v /proc/:/host/proc/:ro \
+                                -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro -e \
+                                DD_API_KEY=${DD_API_KEY} gcr.io/datadoghq/agent:7
+                                """
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        stage('Deploy Prometheus and Grafana Agent For Flask Application') {
+            steps {
+                withAWS(credentials: 'aws_credentials_terraform_user', region: 'us-east-2') {
+                    dir('helm/prometheus') {
+                        script {
+                            sh(
+                                sh """helm install prometheus stable/prometheus-operator && \
+                                kubectl describe statefulset prometheus-prometheus-prometheus-oper-prometheus > prom.yaml && \
+                                kubectl describe statefulset alertmanager-prometheus-prometheus-oper-alertmanager > alert.yaml && \
+                                kubectl describe deployment prometheus-prometheus-oper-operator > oper.yaml"""
+                            )
+                        }
                     }
                 }
             }

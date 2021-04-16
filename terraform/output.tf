@@ -1,3 +1,4 @@
+
 output "RDS_HOST" {
   value = module.rds.rds_host
 }
